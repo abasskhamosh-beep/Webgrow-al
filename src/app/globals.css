@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0B1420;
+  --surface: #121D2B;
+  --dark: #0F1826;
+  --border: #1E2A3A;
+  --brand-blue: #6EA8FE;
+  --brand-blue-gray: #9FB3C8;
+  --brand-green: #22C77D;
+  --brand-warm: #FFA75E;
+  --text-primary: #E8EEF4;
+  --text-secondary: #A9B8C6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-vazirmatn), sans-serif;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Focus states */
+*:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a3a4a;
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+
+  .card-surface {
+    @apply rounded-xl border border-[#1E2A3A] bg-[#121D2B];
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-[#0B1420] transition-all duration-200 hover:brightness-110 hover:shadow-[0_0_20px_rgba(34,199,125,0.3)] active:scale-[0.97];
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-[#1E2A3A] bg-[#0F1826] px-6 py-3 text-sm font-semibold text-text-primary transition-all duration-200 hover:border-brand-blue hover:text-brand-blue active:scale-[0.97];
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-brand-blue/40 px-6 py-3 text-sm font-semibold text-brand-blue transition-all duration-200 hover:bg-brand-blue/10 active:scale-[0.97];
+  }
+
+  .text-link {
+    @apply text-brand-blue transition-colors duration-200 hover:text-brand-green;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold text-text-primary sm:text-3xl md:text-4xl;
+  }
+
+  .section-subtitle {
+    @apply mt-3 text-sm text-text-secondary sm:text-base;
+  }
+}
+
+/* Entrance animation with reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    animation: fade-up 0.6s ease-out forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RTL number/Latin alignment */
+.ltr-text {
+  direction: ltr;
+  unicode-bidi: embed;
+}
