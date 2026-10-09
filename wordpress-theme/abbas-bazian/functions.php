@@ -306,6 +306,111 @@ function abbas_facts() {
 }
 
 /**
+ * Skills listed on the about page.
+ *
+ * @return array<int, string>
+ */
+function abbas_skills() {
+	return apply_filters(
+		'abbas_skills',
+		array(
+			'طراحی سایت وردپرس',
+			'توسعه با المنتور',
+			'راه‌اندازی فروشگاه ووکامرس',
+			'بهینه‌سازی سئو',
+			'افزایش سرعت سایت',
+			'پشتیبانی و نگهداری',
+		)
+	);
+}
+
+/**
+ * Bullet points for each service on the services page, keyed by service title.
+ *
+ * @return array<string, array<int, string>>
+ */
+function abbas_service_details() {
+	return apply_filters(
+		'abbas_service_details',
+		array(
+			'طراحی سایت وردپرس' => array(
+				'طراحی سایت‌های شرکتی، فروشگاهی و شخصی',
+				'سازگار با سئو و سرعت بالا',
+				'طراحی واکنش‌گرا برای موبایل و دسکتاپ',
+			),
+			'توسعه با المنتور'  => array(
+				'پیاده‌سازی حرفه‌ای صفحات با المنتور',
+				'کد تمیز و قابل نگهداری',
+				'انیمیشن‌ها و تعامل‌های ظریف',
+			),
+			'بهینه‌سازی سئو'    => array(
+				'سئوی فنی و ساختاری',
+				'بهینه‌سازی محتوا و کلمات کلیدی',
+				'پشتیبانی از افزونه‌های سئو',
+			),
+			'افزایش سرعت سایت'  => array(
+				'بهینه‌سازی بارگذاری صفحات',
+				'بهبود عملکرد روی موبایل',
+				'کاهش حجم و درخواست‌های اضافی',
+			),
+		)
+	);
+}
+
+/**
+ * Business hours shown on the contact page.
+ *
+ * @return array<int, array<string, string>>
+ */
+function abbas_business_hours() {
+	return apply_filters(
+		'abbas_business_hours',
+		array(
+			array(
+				'day'   => 'شنبه تا چهارشنبه',
+				'hours' => '۹:۰۰ تا ۱۸:۰۰',
+			),
+			array(
+				'day'   => 'پنجشنبه',
+				'hours' => '۹:۰۰ تا ۱۴:۰۰',
+			),
+			array(
+				'day'   => 'جمعه',
+				'hours' => 'تعطیل',
+			),
+		)
+	);
+}
+
+/**
+ * Google Maps embed URL used on the contact page.
+ *
+ * @return string
+ */
+function abbas_maps_embed() {
+	return apply_filters( 'abbas_maps_embed', 'https://www.google.com/maps?q=Joybar,Mazandaran,Iran&output=embed' );
+}
+
+/**
+ * Curated blog cards normalised to { title, url, image }.
+ *
+ * @return array<int, array<string, string>>
+ */
+function abbas_post_items() {
+	$items = array();
+
+	foreach ( abbas_posts() as $abbas_post ) {
+		$items[] = array(
+			'title' => $abbas_post['title'],
+			'url'   => home_url( $abbas_post['path'] ),
+			'image' => $abbas_post['image'],
+		);
+	}
+
+	return $items;
+}
+
+/**
  * Hero background image (also the fallback when the video cannot load).
  *
  * @return string
@@ -343,6 +448,7 @@ function abbas_icon( $name, $class = 'h-5 w-5' ) {
 		'chevron'    => '<path d="m6 9 6 6 6-6"/>',
 		'phone'      => '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
 		'mail'       => '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+		'map-pin'    => '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
 		'send'       => '<path d="M14.54 21.69a.5.5 0 0 0 .93-.03l6.5-19a.5.5 0 0 0-.63-.63l-19 6.5a.5.5 0 0 0-.03.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/>',
 		'instagram'  => '<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>',
 		'menu'       => '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>',
