@@ -1,0 +1,36 @@
+/*
+ * Theme-level additions loaded after the compiled Tailwind bundle.
+ * Keep this file small — everything design-related belongs in Tailwind.
+ */
+
+:root {
+	/* globals.css references this variable (next/font defines it in the
+	   Next.js app); here it simply points at the Google-hosted family. */
+	--font-vazirmatn: "Vazirmatn";
+}
+
+/* WordPress prints a 32px admin bar on the front end for logged-in users. */
+.admin-bar #site-header {
+	top: 32px;
+}
+
+@media screen and (max-width: 782px) {
+	.admin-bar #site-header {
+		top: 46px;
+	}
+}
+
+/*
+ * Reduced motion: drop the long scroll range and the pin so the hero becomes a
+ * plain static frame. hero-scrub.js also bails out early and never downloads
+ * the video in this case.
+ */
+@media (prefers-reduced-motion: reduce) {
+	#hero {
+		height: auto !important;
+	}
+
+	#hero-pin {
+		position: relative;
+	}
+}

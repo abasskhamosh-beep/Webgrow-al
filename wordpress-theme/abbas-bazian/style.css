@@ -1,0 +1,21 @@
+/*
+Theme Name: Abbas Bazian
+Theme URI: https://abbas-wordpress.ir
+Author: Abbas Bazian
+Author URI: https://abbas-wordpress.ir
+Description: قالب شخصی عباس بازیان — طراح سایت وردپرس و فروشگاهی در مازندران. راست‌چین، تیره، با هیرو ویدیویی اسکرولی.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.7
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: abbas-bazian
+Tags: rtl-language-support, dark, one-column, translation-ready, custom-colors
+*/
+
+/*
+ * The real stylesheet is compiled from Tailwind into assets/css/tailwind.css
+ * (see README.md for the build command). This file only carries the theme
+ * header WordPress needs, plus the theme-level overrides in assets/css/theme.css.
+ */
