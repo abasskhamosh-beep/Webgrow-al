@@ -38,6 +38,7 @@ The dev server runs on port 3000 with hot reload. Dependencies install on contai
 
 ## Important Notes
 - All images are referenced from `https://abbas-wordpress.ir/wp-content/uploads/...` — they are external assets.
+- The homepage hero is a **scroll-scrubbed video** (`src/components/Hero.tsx` + `src/lib/useScrollScrubVideo.ts`). The clip is never played: the hero owns a ~300vh scroll range, the viewport inside it is pinned with `position: sticky`, and scroll progress is mapped 1:1 onto `video.currentTime` inside a single `requestAnimationFrame` loop (no React state while scrolling). Assets live in `public/video/` and are re-encoded as **all-intra H.264, no audio, `+faststart`** — the supplied master carried a single keyframe for its whole 5s runtime and stuttered badly when scrubbed. The exact re-encode recipe is documented at the top of `Hero.tsx`. `prefers-reduced-motion` falls back to the static hero image.
 - Contact Form 7 shortcode `[contact-form-7 id="bec772c" title="فرم"]` is preserved as an integration point; it requires a WordPress environment to render the actual form.
 - The Google site verification meta tag is a placeholder — replace with the actual verification code.
 - Navigation links point to the real WordPress page URLs (e.g., `/about/`, `/offer/`).

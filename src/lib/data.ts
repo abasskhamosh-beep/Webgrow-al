@@ -136,5 +136,11 @@ export const businessHours = [
 
 export const heroImage =
   "https://abbas-wordpress.ir/wp-content/uploads/2026/05/asly.png";
+
+// Scroll-scrubbed hero video. All-intra H.264 (every frame a keyframe) and no
+// audio track, so random-access seeking stays instant while scrubbing.
+// Re-encoding recipe + rationale: see src/components/Hero.tsx.
+export const heroVideoDesktop = "/video/hero-scrub-desktop.mp4";
+export const heroVideoMobile = "/video/hero-scrub-mobile.mp4";
 export const aboutImage =
   "https://abbas-wordpress.ir/wp-content/uploads/2026/05/1766750916121.png";
