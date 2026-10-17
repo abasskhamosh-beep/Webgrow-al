@@ -98,7 +98,7 @@ export function crossedQuadsGeometry(planes = 3): THREE.BufferGeometry {
 
 /** Speckled organic texture for the orchard ground. */
 export function speckleTexture(base: string, spots: string[], count = 2400): THREE.Texture {
-  const size = 256;
+  const size = 512;
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -120,6 +120,58 @@ export function speckleTexture(base: string, spots: string[], count = 2400): THR
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.wrapS = THREE.RepeatWrapping;
   tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(14, 18);
+  tex.repeat.set(38, 48);
   return tex;
+}
+
+/**
+ * Procedural sky/ground gradient baked into a pre-filtered environment map.
+ * Gives the orchard's PBR materials soft image-based lighting and reflections
+ * instead of flat direct lighting, which is what makes surfaces read as real.
+ */
+export interface EnvironmentMap {
+  texture: THREE.Texture;
+  dispose: () => void;
+}
+
+export function environmentTexture(renderer: THREE.WebGLRenderer): EnvironmentMap {
+  const w = 512;
+  const h = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0.0, '#bcd6ea');
+    sky.addColorStop(0.34, '#e8ecd4');
+    sky.addColorStop(0.46, '#ffe9bd');
+    sky.addColorStop(0.54, '#e4dcae');
+    sky.addColorStop(0.66, '#9aa860');
+    sky.addColorStop(1.0, '#5d5735');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+
+    const sun = ctx.createRadialGradient(w * 0.5, h * 0.44, 0, w * 0.5, h * 0.44, h * 0.34);
+    sun.addColorStop(0.0, 'rgba(255,248,224,1)');
+    sun.addColorStop(0.3, 'rgba(255,220,150,0.6)');
+    sun.addColorStop(1.0, 'rgba(255,206,128,0)');
+    ctx.fillStyle = sun;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  const source = new THREE.CanvasTexture(canvas);
+  source.mapping = THREE.EquirectangularReflectionMapping;
+  source.colorSpace = THREE.SRGBColorSpace;
+
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  const target = pmrem.fromEquirectangular(source);
+  source.dispose();
+  pmrem.dispose();
+
+  return {
+    texture: target.texture,
+    dispose: () => target.dispose(),
+  };
 }

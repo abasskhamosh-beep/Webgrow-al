@@ -61,7 +61,9 @@ export function buildOrchard(quality: 'high' | 'low'): ScenePart {
   disposables.push(skyGeo, skyMat);
 
   // ---------------------------------------------------------------- ground
-  const groundTex = speckleTexture('#7f7047', ['#8e7c4f', '#6d5f3b', '#93a05a'], high ? 3000 : 1200);
+  const groundTex = speckleTexture('#7f7047', ['#8e7c4f', '#6d5f3b', '#93a05a'], high ? 6000 : 3000);
+  // Sharpen the soil at grazing angles instead of letting it blur out.
+  groundTex.anisotropy = 8;
   const groundGeo = new THREE.PlaneGeometry(700, 900, 1, 1);
   const groundMat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
@@ -72,6 +74,7 @@ export function buildOrchard(quality: 'high' | 'low'): ScenePart {
   const ground = new THREE.Mesh(groundGeo, groundMat);
   ground.rotation.x = -Math.PI / 2;
   ground.position.set(0, GROUND_Y, -220);
+  ground.receiveShadow = true;
   group.add(ground);
   disposables.push(groundGeo, groundMat, groundTex);
 
@@ -103,8 +106,38 @@ export function buildOrchard(quality: 'high' | 'low'): ScenePart {
     trunks.setMatrixAt(i, dummy.matrix);
   });
   trunks.instanceMatrix.needsUpdate = true;
+  trunks.castShadow = true;
+  trunks.receiveShadow = true;
   group.add(trunks);
   disposables.push(trunkGeo, trunkMat);
+
+  // ---------------------------------------------------------------- branches
+  // Leaning limbs break the "bare pole" silhouette and catch the low sun.
+  const branchesPerTree = 3;
+  const branchGeo = new THREE.CylinderGeometry(0.14, 0.26, 4.4, 5);
+  const branchMat = new THREE.MeshStandardMaterial({ color: COLORS.trunk, roughness: 0.9, metalness: 0 });
+  const branches = new THREE.InstancedMesh(branchGeo, branchMat, trees.length * branchesPerTree);
+  let bi = 0;
+  trees.forEach((tree) => {
+    for (let b = 0; b < branchesPerTree; b++) {
+      const angle = (b / branchesPerTree) * Math.PI * 2 + Math.random() * 0.9;
+      const lean = 0.55 + Math.random() * 0.35;
+      dummy.position.set(
+        tree.x + Math.cos(angle) * 1.1 * tree.scale,
+        GROUND_Y + (6.2 + Math.random() * 1.4) * tree.scale,
+        tree.z + Math.sin(angle) * 1.1 * tree.scale
+      );
+      dummy.rotation.set(Math.sin(angle) * lean, Math.random() * Math.PI, -Math.cos(angle) * lean);
+      dummy.scale.setScalar(tree.scale);
+      dummy.updateMatrix();
+      branches.setMatrixAt(bi, dummy.matrix);
+      bi++;
+    }
+  });
+  branches.instanceMatrix.needsUpdate = true;
+  branches.castShadow = true;
+  group.add(branches);
+  disposables.push(branchGeo, branchMat);
 
   // ---------------------------------------------------------------- foliage
   const clustersPerTree = high ? 8 : 5;
@@ -118,7 +151,7 @@ export function buildOrchard(quality: 'high' | 'low'): ScenePart {
     roughness: 0.95,
     metalness: 0,
     emissive: new THREE.Color('#16220f'),
-    emissiveIntensity: 0.75,
+    emissiveIntensity: 0.28,
   });
   const foliage = new THREE.InstancedMesh(blobGeo, blobMat, trees.length * clustersPerTree);
   // Near-white tints: these multiply the leaf texture's own greens.
@@ -149,8 +182,16 @@ export function buildOrchard(quality: 'high' | 'low'): ScenePart {
   });
   foliage.instanceMatrix.needsUpdate = true;
   if (foliage.instanceColor) foliage.instanceColor.needsUpdate = true;
+  // Alpha-cut leaves must cast alpha-tested shadows, not solid quad shadows.
+  const foliageDepth = new THREE.MeshDepthMaterial({
+    depthPacking: THREE.RGBADepthPacking,
+    map: foliageTex,
+    alphaTest: 0.45,
+  });
+  foliage.castShadow = true;
+  foliage.customDepthMaterial = foliageDepth;
   group.add(foliage);
-  disposables.push(blobGeo, blobMat, foliageTex);
+  disposables.push(blobGeo, blobMat, foliageTex, foliageDepth);
 
   // Gentle breeze — injected into the instanced foliage vertex shader.
   blobMat.onBeforeCompile = (shader) => {
@@ -194,6 +235,7 @@ export function buildOrchard(quality: 'high' | 'low'): ScenePart {
   });
   fruits.instanceMatrix.needsUpdate = true;
   if (fruits.instanceColor) fruits.instanceColor.needsUpdate = true;
+  fruits.castShadow = true;
   group.add(fruits);
   disposables.push(fruitGeo, fruitMat);
 
@@ -208,7 +250,7 @@ export function buildOrchard(quality: 'high' | 'low'): ScenePart {
     roughness: 0.95,
     metalness: 0,
     emissive: new THREE.Color('#16220f'),
-    emissiveIntensity: 0.7,
+    emissiveIntensity: 0.3,
   });
   const shrubs = new THREE.InstancedMesh(shrubGeo, shrubMat, shrubCount);
   for (let i = 0; i < shrubCount; i++) {
@@ -222,8 +264,15 @@ export function buildOrchard(quality: 'high' | 'low'): ScenePart {
   }
   shrubs.instanceMatrix.needsUpdate = true;
   if (shrubs.instanceColor) shrubs.instanceColor.needsUpdate = true;
+  const shrubDepth = new THREE.MeshDepthMaterial({
+    depthPacking: THREE.RGBADepthPacking,
+    map: foliageTex,
+    alphaTest: 0.45,
+  });
+  shrubs.castShadow = true;
+  shrubs.customDepthMaterial = shrubDepth;
   group.add(shrubs);
-  disposables.push(shrubGeo, shrubMat);
+  disposables.push(shrubGeo, shrubMat, shrubDepth);
 
   // ---------------------------------------------------------------- sun glow
   const sunTex = radialGlowTexture('rgba(255,246,220,1)', 'rgba(255,206,128,0)');
@@ -250,6 +299,7 @@ export function buildOrchard(quality: 'high' | 'low'): ScenePart {
     disposables.forEach((d) => d.dispose());
     foliage.dispose();
     trunks.dispose();
+    branches.dispose();
     fruits.dispose();
     shrubs.dispose();
   };

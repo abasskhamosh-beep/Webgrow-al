@@ -52,6 +52,12 @@ How it works:
   ambient and warm point lights are all interpolated from the same progress value.
 - Everything is procedural — no external models or textures. Foliage is instanced crossed quads
   with an alpha-cut leaf texture; the pulp/rind use custom `ShaderMaterial`s with value-noise fbm.
+- Realism pass (orchard): a procedural PMREM environment map (`environmentTexture` in textures.ts)
+  feeds image-based lighting to all PBR materials; the sun casts PCF-soft shadows from a shadow
+  camera that follows the camera path each frame (keeps near trees crisp); trees get instanced
+  branches; trunks/foliage/fruits/shrubs cast shadows and the ground receives them. Foliage and
+  shrubs use a `customDepthMaterial` so leaf shadows are alpha-tested, not solid quads. The soil
+  texture is anisotropically filtered and tiled finely (repeat 38×48) so it stays sharp up close.
 
 Gotchas (learned the hard way):
 - Size the renderer from the **canvas' own client size**, not the 520vh scroll container, or the

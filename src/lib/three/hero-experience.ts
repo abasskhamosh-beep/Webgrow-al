@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { COLORS } from './palette';
 import { buildOrange, type ScenePart } from './orange';
 import { buildOrchard } from './orchard';
+import { environmentTexture } from './textures';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -32,6 +33,9 @@ const FOG_DENSITY = [0.036, 0.03, 0.022, 0.014, 0.009];
 
 /** Progress at which the orchard becomes visible (hidden behind the opaque rind). */
 const ORCHARD_REVEAL_AT = 0.5;
+
+/** Fixed sun direction (matches the sky shader's disc) used by the moving shadow camera. */
+const SUN_OFFSET = new THREE.Vector3(60, 70, 90).normalize();
 
 const SUN = { p: [0, 0.45, 0.6, 1], v: [0, 0.1, 2.6, 2.0] };
 const AMBIENT = { p: [0, 0.45, 0.6, 1], v: [0.65, 0.5, 1.15, 1.05] };
@@ -79,6 +83,8 @@ export class HeroExperience {
   private readonly warmB: THREE.PointLight;
   private readonly clock = new THREE.Clock();
   private readonly resizeObserver: ResizeObserver;
+  private readonly environment: { texture: THREE.Texture; dispose: () => void };
+  private readonly sunFocus = new THREE.Vector3();
   private trigger?: ScrollTrigger;
 
   private progress = 0;
@@ -101,10 +107,18 @@ export class HeroExperience {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.14;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     this.scene = new THREE.Scene();
     this.fog = new THREE.FogExp2(new THREE.Color(FOG_COLOR[0]), FOG_DENSITY[0]);
     this.scene.fog = this.fog;
+
+    // Image-based lighting so the PBR materials (bark, fruit, juice) read as real
+    // surfaces with soft ambient bounce instead of flat direct lighting.
+    this.environment = environmentTexture(this.renderer);
+    this.scene.environment = this.environment.texture;
+    this.scene.environmentIntensity = 0.45;
 
     this.camera = new THREE.PerspectiveCamera(CAM.fov[0], 1, 0.1, 1200);
     this.camera.position.set(0, 0, 10);
@@ -115,6 +129,19 @@ export class HeroExperience {
     this.sun = new THREE.DirectionalLight(0xfff0cc, 0);
     this.sun.position.set(60, 70, -140);
     this.sun.target.position.set(0, 0, -230);
+    this.sun.castShadow = true;
+    const shadowSize = quality === 'high' ? 2048 : 1024;
+    this.sun.shadow.mapSize.set(shadowSize, shadowSize);
+    this.sun.shadow.bias = -0.0006;
+    this.sun.shadow.normalBias = 0.5;
+    const shadowCam = this.sun.shadow.camera;
+    shadowCam.left = -90;
+    shadowCam.right = 90;
+    shadowCam.top = 90;
+    shadowCam.bottom = -90;
+    shadowCam.near = 1;
+    shadowCam.far = 560;
+    shadowCam.updateProjectionMatrix();
     this.scene.add(this.sun);
     this.scene.add(this.sun.target);
 
@@ -201,6 +228,13 @@ export class HeroExperience {
       this.lastFov = fov;
     }
 
+    // ------------------------------------------------------------- shadow follow
+    // Keep the shadow camera centred ahead of the camera so near trees stay crisp
+    // along the whole journey without a giant, low-resolution shadow frustum.
+    this.sunFocus.set(camX * 0.5, 0, z - 70);
+    this.sun.target.position.copy(this.sunFocus);
+    this.sun.position.copy(this.sunFocus).addScaledVector(SUN_OFFSET, 220);
+
     // ------------------------------------------------------------- atmosphere
     piecewiseColor(p, tmpColor);
     this.fog.color.copy(tmpColor);
@@ -249,6 +283,7 @@ export class HeroExperience {
     this.resizeObserver.disconnect();
     this.orange.dispose();
     this.orchard.dispose();
+    this.environment.dispose();
     this.renderer.dispose();
   }
 }
