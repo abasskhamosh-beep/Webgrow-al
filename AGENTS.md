@@ -33,14 +33,41 @@ docker compose -f docker-compose.base44.yml up -d
 - Warm Ivory: `#F8F6EF` — main background
 - Soft Sage: `#E8EEE3` — supporting section backgrounds
 
-## Scroll-Driven Video Hero
-The `HeroSection` component implements a scroll-to-video experience:
-- 300vh scroll container with 100vh sticky viewport
-- Scroll progress maps to `video.currentTime` (0% → first frame, 100% → last frame)
-- Uses `requestAnimationFrame` for smooth seeking, avoids excessive seeks
-- Video never autoplays or loops — only seeked by scroll position
-- Falls back to static image when: no video URL, `prefers-reduced-motion`, or video error
-- Loading indicator shown while video metadata loads
+## Scroll-Driven Cinematic Hero (Three.js + GSAP ScrollTrigger)
+The hero is a single continuous scroll-driven shot: **inside a Thomson orange → through the rind → into a sunlit citrus orchard**. There are no cuts or fades to black.
+
+Files:
+- `src/components/HeroSection.tsx` — decides 3D vs. fallback; renders the sticky container
+- `src/components/HeroExperience.tsx` — client wrapper, loading state, hero copy opacity
+- `src/components/HeroContent.tsx` — shared Persian hero copy (used by both paths)
+- `src/lib/three/hero-experience.ts` — renderer, camera path, lights, fog, ScrollTrigger timeline
+- `src/lib/three/orange.ts` — pulp tunnel, vesicles, membranes, droplets, bokeh, peel, light burst
+- `src/lib/three/orchard.ts` — sky dome, ground, instanced trees/foliage/fruit, sun
+- `src/lib/three/{palette,glsl,textures}.ts` — colours, procedural noise, canvas textures
+
+How it works:
+- 520vh scroll container + 100vh sticky viewport; `ScrollTrigger` reports progress, the render loop
+  eases toward it (deterministic and fully reversible — scrolling up replays the journey backwards).
+- One camera keyframe table drives position, FOV, roll and look-at; fog colour/density, sun,
+  ambient and warm point lights are all interpolated from the same progress value.
+- Everything is procedural — no external models or textures. Foliage is instanced crossed quads
+  with an alpha-cut leaf texture; the pulp/rind use custom `ShaderMaterial`s with value-noise fbm.
+
+Gotchas (learned the hard way):
+- Size the renderer from the **canvas' own client size**, not the 520vh scroll container, or the
+  view is stretched.
+- The rind sphere (radius 23 at z = -76) must stay opaque until it starts dissolving, and the
+  orchard group is hidden until progress ≥ 0.5 (`ORCHARD_REVEAL_AT`) — otherwise the ground plane
+  and near trees are visible through the tunnel mouth, since they sit inside the rind sphere.
+- The orchard's shaders are pre-compiled in the constructor so revealing it never hitches.
+
+Fallbacks:
+- `prefers-reduced-motion` or no WebGL → static image hero (`siteConfig.heroFallbackImage`).
+- Mobile (`< 768px`) → `quality: 'low'`: fewer instances/particles, capped pixel ratio, no AA.
+- Three.js resources, ScrollTrigger and the ResizeObserver are all disposed on unmount.
+
+Note: `siteConfig.heroVideoUrl` is no longer used by the hero (the 3D scene replaced the
+scroll-to-video path); the key is kept in the config but has no effect.
 
 ## Notes
 - No testimonials section — only add when authentic testimonials exist
